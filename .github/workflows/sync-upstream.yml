@@ -1,0 +1,33 @@
+name: Sync MoonTVPlus upstream
+
+on:
+  schedule:
+    - cron: "17 */6 * * *" # 每 6 小时检查一次
+  workflow_dispatch: # 允许手动运行
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out tv
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/mtvpls/MoonTVPlus.git
+          git fetch upstream main
+
+      - name: Sync main branch
+        run: |
+          if git diff --quiet HEAD upstream/main; then
+            echo "Already up to date."
+            exit 0
+          fi
+          git merge --ff-only upstream/main
+          git push origin main
